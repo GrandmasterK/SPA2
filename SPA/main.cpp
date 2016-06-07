@@ -15,10 +15,10 @@ using namespace std;
 
 class service //create service object class
 {   public:
+    int svcnum=999999; //value 9999 means no service
     string name;
     int minutes;
     double rate;
-    int svcnum;
     int workerid;
     
     void setname (string s){name=s;};
@@ -92,22 +92,34 @@ int resday();
 int resyear();
 int restime();
 int getlines();
-
+int getlines_s();
 int main() {
 
     
-//create services array ..should auto create size later should read from file-->services.txt afterwards
-service services[20];
+//detect number of lines from service.txt first
+    int num_of_lines=0;
+    num_of_lines = getlines_s();
+    cout << "No. of lines in Services:"<<num_of_lines<<endl;
+    int num_of_records=0;
+    num_of_records= num_of_lines/5;
+    cout << "Number of Services:"<< num_of_records<<endl;
+    //create appt array --assuming book holds 10 records for simplicity--expand later
+    int svc_array_size=0;
+    svc_array_size= num_of_records + 1; //let arrray size be 1 bigger than the number of records
+    service *services; //create pointer for services array
+    services = new service[svc_array_size]; //create services array
     
-    ifstream inputfile; //open services.txt file to read in services parameters
-    inputfile.open("services.txt");
-    if (inputfile.is_open()) {cout << "Service File Opened Successfully.\n";}; //check if services file opens
-    for (int i=0;i<20;i++)    // loop to file array from file static array size 20
+    ifstream inputfile_s; //open services.txt for reading
+    inputfile_s.open("services.txt");
+    if (inputfile_s.is_open()){cout << "Service File Open Successfully.\n";} //check if services file opens
+    
+    for (int i=0;i< (svc_array_size-1);i++)    // loop to file array from except last spot
     {
-        //cout << i <<endl;  // cycle test counter
-        string namein;int minutein=0; double ratein=0.00; int workeridin=0; //create temp reader buckets
-        inputfile >> namein; inputfile  >> minutein; inputfile >> ratein; inputfile >> workeridin;
+        
+        int svcnumin=0; string namein;int minutein=0; double ratein=0.00; int workeridin=0; //create temp reader buckets
+        inputfile_s >> svcnumin; inputfile_s >> namein; inputfile_s  >> minutein; inputfile_s >> ratein; inputfile_s >> workeridin;
         //cout << namein<<" " << minutein <<" "<<ratein<<endl; //test dump reader buffer contents
+        services[i].setsvcnum(svcnumin);
         services[i].setname(namein);
         services[i].setminutes(minutein);
         services[i].setrate(ratein);
@@ -115,7 +127,28 @@ service services[20];
         services[i].setworkerid(workeridin);
     };
     //cout <<"<end cycle test>"<< endl;           //end cycle test
-    inputfile.close(); //close service.txt file
+    inputfile_s.close(); //close service.txt file
+    
+//int svc_arraysize = 20; //begin old part --- static services array
+//service services[20];
+    
+//    ifstream inputfile; //open services.txt file to read in services parameters
+//    inputfile.open("services.txt");
+//    if (inputfile.is_open()) {cout << "Service File Opened Successfully.\n";}; //check if services file opens
+//    for (int i=0;i<20;i++)    // loop to file array from file static array size 20
+//    {
+//        //cout << i <<endl;  // cycle test counter
+//        string namein;int minutein=0; double ratein=0.00; int workeridin=0; //create temp reader buckets
+//        inputfile >> namein; inputfile  >> minutein; inputfile >> ratein; inputfile >> workeridin;
+//        //cout << namein<<" " << minutein <<" "<<ratein<<endl; //test dump reader buffer contents
+//        services[i].setname(namein);
+//        services[i].setminutes(minutein);
+//        services[i].setrate(ratein);
+//        services[i].setsvcnum(i);
+//        services[i].setworkerid(workeridin);
+//    };
+//  cout <<"<end cycle test>"<< endl;           //end cycle test
+//    inputfile.close(); //close service.txt file
 //        for (int i=0;i<20;i++)     //test pull data from objects <maybe change to function>  worx
 //        {
 //            cout << services[i].getsvcnum()<<",";
@@ -189,9 +222,6 @@ service services[20];
     bool to_exit=false;
    
     do{
-   
-    
-    
         //load appt book first by counting lines, creating array dynamically according to recordcount+1
         int num_of_lines=0;
         num_of_lines = getlines();
@@ -199,7 +229,7 @@ service services[20];
         int num_of_records=0;
         num_of_records= num_of_lines/11;
         cout << "Number of Records:"<< num_of_records<<endl;
-        //create appt array --assuming book holds 10 records for simplicity--expand later
+        //create appt array
         int appt_array_size=0;
         appt_array_size= num_of_records + 1; //let arrray size be 1 bigger than the number of records
         //appointment appt[10]; //used for static appt array
@@ -257,12 +287,13 @@ service services[20];
                 if (entryerror==true){cout<<"<Invalid Customer ID>"<<endl;}
             } while (entryerror==true);
             
-            for (int i=0;i<20;i++)     //   List out services
-                    {
-                        cout << services[i].getsvcnum()<<",";
-                        cout << services[i].getname()<<","<<services[i].getminutes()<<",";
-                        cout <<"Worker#"<<services[i].getworkerid() << endl;
-                        
+            for (int i=0;i<svc_array_size;i++)     //   List out services
+                    {   if(services[i].svcnum != 999999)
+                        {
+                            cout << services[i].getsvcnum()<<",";
+                            cout << services[i].getname()<<","<<services[i].getminutes()<<",";
+                            cout <<"Worker#"<<services[i].getworkerid() << endl;
+                        }
                     }
 
            
@@ -301,9 +332,9 @@ service services[20];
                 if(entryerror==true){cout<<"<Invalid Time>"<<endl;}
             } while (entryerror==true);
             
-            //composite date time check
             
-            // insert calculation of end time here if necessary --no yet necessary
+            
+            // insert calculation of end time here if necessary --not yet necessary
             
             bool flag_timeconflict=false; // flag for time conflicts
             
@@ -360,7 +391,8 @@ service services[20];
 
             //find workerid of requested service
             int workeridin = services[servnumin].getworkerid();
-            
+      if(workeridin != 1)
+      {
             for (int i=0; i<20; i++) // search thru services match workerid
             {
                 if(services[i].workerid == workeridin) //execute when matches workerid
@@ -384,7 +416,7 @@ service services[20];
                                         { firstemptyspot=f; break;}
                                     }                     //end find empty spot
                             
-                                takenlist_worker[firstemptyspot].setbegintime(appt[ii].begintime + b*30); //populate
+                                takenlist_worker[firstemptyspot].setbegintime(appt[ii].begintime + b*30); //populate takenlist
                                 takenlist_worker[firstemptyspot].setcustid(1);
                             }
                         }
@@ -406,7 +438,8 @@ service services[20];
                     }
                 }
             }
-            //spit out self array info --- no worky
+      }
+            //spit out self array info --- worky
             for(int i=0;i<24;i++)
 //            {
 //                if(takenlist_self[i].custid == 1){cout << takenlist_self[i].begintime;
@@ -415,7 +448,7 @@ service services[20];
             
             
             
-            //spit out worker array info -- no worky
+            //spit out worker array info --  worky
 //            for(int i=0;i<24;i++)
 //            {
 //            if(takenlist_worker[i].custid ==1) {cout<< takenlist_worker[i].begintime;
@@ -430,69 +463,6 @@ service services[20];
             }
 
             
-            //            int workeridin = NULL;                      //populate list start
-//            workeridin= services[servnumin].getworkerid(); //pull workerid from requested service
-//            
-//            for (int s=0; s<20;s++)                        //scans through services for worker related services
-//            {
-//                if(services[s].getworkerid()==workeridin) //search for matching worker in services[]
-//                {
-//                    //int svc_to_check = 0;
-//                    //svc_to_check = services[s].getsvcnum(); //pulls service number(s) matching worker
-//                    int svc_to_check  = servnumin;
-//                    for (int i =0;i<appt_array_size;i++)  //search for matching service in appt[]
-//                    {
-//                        if ((appt[i].custid != 0) &&
-//                            (appt[i].servid == svc_to_check) &&
-//                            (appt[i].beginmon == beginmonin) &&
-//                            (appt[i].beginday == begindayin) &&
-//                            (appt[i].beginyear == beginyearin)  )
-//                        {
-//                            int starttime = 0;
-//                            starttime = appt[i].begintime;
-//                            int blocks= (services[svc_to_check].getminutes())/30; //calculates blocks
-//                            for (int ii =0; ii<blocks; ii++)
-//                            {
-//                                int firstemptyspot =0;
-//                                for(int f=0;f<24;f++)
-//                                {
-//                                    if ( takenlist_worker[f].getcustid() == 0 )
-//                                    {firstemptyspot = f;break;} //breaks after finding first empty spot
-//                                }
-//                                takenlist_worker[firstemptyspot].setbegintime(starttime + ii*30);
-//                                takenlist_worker[firstemptyspot].setcustid(1);
-//                            }
-//                            
-//                        }
-//                    }
-//                }
-//            }
-            
-            //check for conflicts
-            
-
-            
-            
-//            for (int i=0; i<(blocks);i++) //search for conflicts with self on appt array or temp table --test appt first
-//            {   cout <<"Checking block:"<<(i+1)<<endl;
-//                for (int ii=0;ii<10; ii++) //search through appt array for conflicts
-//                {   if (appt[ii].custid == custidin )
-//                    {   if(appt[ii].beginyear==beginyearin) //need to check for accuracy
-//                        {   if(appt[ii].beginmon==beginmonin)
-//                            { if(appt[ii].beginday==begindayin)
-//                                {
-//                                
-//                                    if(appt[ii].begintime== c2m(begintimein)+ (ii*30) )
-//                                    {
-//                                        flag_timeconflict = true;
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                    
-//                }
-//            }
             if(flag_timeconflict==true)
             {
                 cout << "<There is a time conflict -- process aborted>" << endl;
@@ -516,7 +486,7 @@ service services[20];
                 
                
                 
-                apptidin= timestamp(); // pulls timestamp to be stored as apptid from current function
+                apptidin= timestamp(); // pulls timestamp to be stored in apptid from current function
                 appt[firstemptyspot].setapptid(apptidin);
                 appt[firstemptyspot].setresmon( resmon() );
                 appt[firstemptyspot].setresday( resday() );
@@ -566,14 +536,234 @@ service services[20];
             }
             break;
                     }
+        case 2:
+        {
+            int custidin=0;
+            cout<<"Cancel Reservation Menu"<<endl;
+            
+            int current_timein=0;     int current_dayin=0;    int current_monthin=0;    int current_yearin=0;//grab current time and date
+            current_timein= c2m( restime() ); // pulls current time
+            current_dayin=resday(); current_monthin=resmon(); current_yearin=resyear(); //pulls current month day year
+            int beginyearin=0; // for storing when cancellation appt id matches
+            int beginmonin=0;
+            int begindayin=0;
+            int begintimein=0;
+            int resyearin=0;
+            int resmonin=0;
+            int resdayin=0;
+            int restimein=0;
+            
+            cout<<"Enter CustomerID#:"<<endl;
+            cin >> custidin;
+            int findcount=0;
+            for(int i=0;i<appt_array_size;i++)
+            {
+                if(appt[i].custid==custidin)
+                {   cout << "Appointments for Customer#:"<<appt[i].custid<<endl;
+                    int svc_to_lookup = appt[i].getservid();
+                    int timeallocation = services[svc_to_lookup].getminutes();
+                    cout << "ReservationID: " << appt[i].apptid << endl;
+                    cout << "Date: " << appt[i].getbeginmon()<< "/" << appt[i].getbeginday() << "/" << appt[i].getbeginyear();
+                    cout << " ";
+                    cout << "Starts at: " << c2h( appt[i].getbegintime() )<< " ";
+                    cout << "For: " << timeallocation << " minutes"<< endl;
+                    cout << endl;
+                    findcount++;
+                }
+            }
+            cout <<"<" <<findcount <<" Reservations Found"<<">" << endl;
+            findcount=0;
+            bool entryerror = false;
+            int entry= NULL;
+            do {                     //validation loop
+                entryerror = true;
+                cout <<"(1) To Delete an Appointment"<< endl;
+                cout <<"(0) To Go Back to Main Menu"<< endl;
+                cin >> entry;
+                if ( (entry==1) || (entry==0) )
+                { entryerror=false;}
+                if(entryerror==true){cout <<"<Invalid Entry>"<<endl;}
+            } while(entryerror==true);
+            if(entry==1)
+            {
+                cout <<"Enter Reservation Number to Cancel:"<<endl;
+                cout <<"or Enter 0 to go back to Main" <<endl;
+                int long res2cancel_in = 0;
+                int long res2cancel_confirmed = 0;
+                cin >> res2cancel_in;
+                bool cancelationfound = false; //cancelation found detector
+                bool flag_90mins_b4 = false;
+                bool flag_within10mins_of_res = false;
+                bool cancel_eligible=false;  // cancel eligibility detector
+                
+                for (int i=0; i<appt_array_size; i++) //look for appt by appt id
+                {
+                    if ( (appt[i].custid !=0) && (appt[i].getapptid() == res2cancel_in)  )
+                    {
+                        cout << "Reservation found"<< endl;
+                        cancelationfound = true;
+                        res2cancel_confirmed = res2cancel_in;
+                        //pull values since appt id matched
+                        beginyearin= appt[i].getbeginyear();   // pull reservation time values for comparison
+                        beginmonin= appt[i].getbeginmon();
+                        begindayin= appt[i].getbeginday();
+                        begintimein= appt[i].getbegintime();
+                        resyearin= appt[i].getresyear();
+                        resmonin= appt[i].getresmon();
+                        resdayin= appt[i].getresday();
+                        restimein= appt[i].getrestime();
+                       break;
+                    }
+                   // else{cout <<"Reservation not found" << endl;}
+                }
+
+                             //  if at least 90 mins b4
+                if(beginyearin == current_yearin)  //  if begin year is same as current, check month
+                {
+                    if (beginmonin == current_monthin) // if begin year/month is same a current, check day
+                    {
+                        if(begindayin == current_dayin)   // if begin year/month/day is same as current - check for 90mins b4
+                        {
+                            if( (begintimein - current_timein) > 90 )
+                            {
+                                flag_90mins_b4 = true;
+                            }
+                            else{ flag_90mins_b4 = false;}
+                        }
+                        if (begindayin > current_dayin) // if begin year/month/day is higher than current -allow
+                        {
+                            flag_90mins_b4 = true;
+                        }
+                        if (begindayin < current_dayin) // if begin year/month/day is lower than current - refuse
+                        {
+                            flag_90mins_b4= false;
+                        }
+                    }
+                    if (beginmonin > current_monthin){ flag_90mins_b4 = true;}   // if begin year/month > than cuurent - allow
+                    if (beginmonin < current_monthin){ flag_90mins_b4 = false;}  // if begin year/month < than current -refuse
+                    
+                }
+                if(beginyearin > current_yearin) {flag_90mins_b4=true;} //if begin year is higher than current - allow
+                if(beginyearin < current_yearin) {flag_90mins_b4=false;} // if begin year is lower than current -refuse
+               
+                if ( (resyearin == current_yearin) &&   //check for within 10 mins res time - has to match current date
+                     (resmonin == current_monthin) &&
+                     (resdayin == current_dayin) )
+                {
+                    if (restimein-current_timein < 10)
+                    {
+                        flag_within10mins_of_res = true;
+                    }
+                }
+                if (flag_90mins_b4 == true)               {cout << "Eligible for Cancelation <b490>" << endl; cancel_eligible=true;}
+                else if (flag_within10mins_of_res == true) {cout << "Eligible for Cancelation <w10>" << endl; cancel_eligible=true;}
+           
+                
+                if ( (flag_90mins_b4 = true) or (flag_within10mins_of_res =true)  )
+                {
+                    for(int i=0; i<appt_array_size; i++)
+                    {
+                        if ( (appt[i].getcustid() != 0) && ( appt[i].getapptid() == res2cancel_confirmed) )
+                        {
+                            appt[i].setcustid(0);
+                            cout << "<Reservation Canceled>" << endl;
+                        }
+                    }
+                    
+                }
+                if (cancelationfound == false)  {   cout << "<Reservation not found> Aborting"<< endl;}
+                if ( (cancelationfound==true) && (cancel_eligible==false) )
+                    { cout<<"<Reservation found, but not eligible for Cancellation>"<<endl; }
+               
+            
+                cancelationfound = false;  //resetting cancelation detector
+                cancel_eligible  = false; //reseting eligiblity detector
+                flag_90mins_b4 = false; flag_within10mins_of_res = false;
+            }
+            ofstream outfile; //output to file
+            outfile.open("appt.txt");
+            for(int i=0;i<appt_array_size;i++)
+            {
+                if (appt[i].getcustid() !=0 )
+                {   //cout << "Record(s) found"<<endl;  //for testing if record ready to write to file
+                    
+                    outfile << appt[i].getcustid()<<endl;
+                    outfile << appt[i].getservid()<<endl;
+                    
+                    outfile << appt[i].getbeginmon()<<endl;
+                    outfile << appt[i].getbeginday()<<endl;
+                    outfile << appt[i].getbeginyear()<<endl;
+                    outfile << appt[i].getbegintime()<<endl;
+                    
+                    
+                    outfile << appt[i].getresmon() << endl;
+                    outfile << appt[i].getresday() << endl;
+                    outfile << appt[i].getresyear() << endl;
+                    outfile << appt[i].getrestime() << endl;
+                    outfile << appt[i].getapptid() << endl;
+                }
+            }
+            outfile.close();
+            delete [] appt;  //delete appt array from memory
+            appt=NULL;
+            
+        }
+            break;
+        case 3:
+        {
+            cout << "Customer Billing Menu" << endl;
+            int custidin=0;
+            cout << "Enter CustomerID#;" << endl;
+            cin >> custidin; // add validation
+            cout << endl;
+            cout << "<Bill begins here>" <<endl;
+            double bill_total=0;
+            for (int i=0; i<appt_array_size; i++)
+            {
+                if ( (appt[i].custid != 0)  && (appt[i].custid == custidin) )
+                {
+                    //cout << "Entry found" << endl; //for debug
+                    int svc2lookup =0;
+                    svc2lookup = appt[i].getservid();
+                    //cout << "Need to lookup Service#" << svc2lookup << endl; //for debug
+                    double ratein=0;
+                    int minutesin=0;
+                    double subtotal=0;
+                    string servicenamein = "Nothing";
+                    //find matching data for given service#
+                    for (int s=0; s< svc_array_size; s++ )
+                    {
+                        if (services[s].svcnum == svc2lookup)
+                        {
+                            servicenamein=services[s].getname();
+                            ratein=services[s].getrate();
+                            minutesin=services[s].getminutes();
+                            subtotal = minutesin * ratein;
+                            
+                        }
+                    }
+                    cout << servicenamein << "," << minutesin << " " << "minutes" << "," << "Cost:$" << subtotal << endl;
+                    bill_total = bill_total + subtotal;
+                    
+                }
+                
+            }
+            cout << "Total is:$"<< bill_total << endl;
+            cout << "<Bill ends here>" << endl;
+            cout << endl;
+        }
+            break;
         case 4:
         {
             cout<<"Lookup worker availablity Menu"<<endl;
-            for (int i=0;i<20;i++)     //   List out services
-            {
-                cout << services[i].getsvcnum()<<",";
-                cout << services[i].getname()<<","<<services[i].getminutes()<<",";
-                cout <<"Worker#"<<services[i].getworkerid() << endl;}
+            for (int i=0;i<svc_array_size;i++)     //   List out services
+            {   if(services[i].svcnum != 999999)
+                {
+                    cout << services[i].getsvcnum()<<",";
+                    cout << services[i].getname()<<","<<services[i].getminutes()<<",";
+                    cout <<"Worker#"<<services[i].getworkerid() << endl;
+                }
+            }
                 int servnumin = 0;
                 int blocks =0;
                 bool entryerror=false;
@@ -656,7 +846,12 @@ service services[20];
                 else{cout<< "__";}
             }
             cout << endl;
-        }
+            
+            for(int i=0; i<24;i++) //reinitialize taken lists
+            {
+                takenlist_self[i].custid=0;
+                takenlist_self[i].begintime=0;
+            }        }
             break;
         case 5:
         {
@@ -826,6 +1021,18 @@ int getlines()
     ++no_of_lines;
     }
     apfile.close();
+    return no_of_lines;
+}
+int getlines_s()
+{
+    int no_of_lines=0;
+    string line;
+    ifstream svcfile("services.txt");
+    while (getline(svcfile,line))
+    {
+        ++no_of_lines;
+    }
+    svcfile.close();
     return no_of_lines;
 }
 //void list_services(service services[])
