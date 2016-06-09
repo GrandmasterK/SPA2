@@ -37,10 +37,16 @@ class customer //create customer object class
     int id;
     string fname;
     string lname;
+    int checkout_month;
+    int checkout_day;
+    int checkout_year;
     
     void setid(int n){id=n;};
     void setfname(string f){fname=f;};
     void setlname(string l){lname=l;};
+    void setcheckout_month(int m){checkout_month=m;};
+    void setcheckout_day(int d){checkout_day=d;};
+    void setcheckout_year(int y){checkout_year=y;};
 };
 
 class appointment
@@ -161,12 +167,15 @@ int main() {
     ifstream inputfile2;
     inputfile2.open("customers.txt"); // pull data from customers.txt  --add file open verify test later
     for (int i=0; i<5; i++)
-    { int custidin; string fnamein; string lnamein;
+    { int custidin; string fnamein; string lnamein; int monthin; int dayin; int yearin;
         inputfile2 >> custidin; inputfile2 >> fnamein; inputfile2 >> lnamein;
+        inputfile2 >> monthin; inputfile2 >> dayin; inputfile2 >> yearin;
         customers[i].setid(custidin);
         customers[i].setfname(fnamein);
         customers[i].setlname(lnamein);
-        
+        customers[i].setcheckout_month(monthin);
+        customers[i].setcheckout_day(dayin);
+        customers[i].setcheckout_year(yearin);
     }
     inputfile2.close();
      //test dump contents of customers array
