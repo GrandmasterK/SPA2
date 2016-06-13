@@ -659,7 +659,7 @@ int main() {
                      (resmonin == current_monthin) &&
                      (resdayin == current_dayin) )
                 {
-                    if (restimein-current_timein < 10)
+                    if (current_timein-restimein < 10)
                     {
                         flag_within10mins_of_res = true;
                     }
@@ -764,7 +764,7 @@ int main() {
             break;
         case 4:
         {
-            cout<<"Lookup worker availablity Menu"<<endl;
+            cout<<"Lookup Service Availablity By Date/Time"<<endl;
             for (int i=0;i<svc_array_size;i++)     //   List out services
             {   if(services[i].svcnum != 999999)
                 {
@@ -803,7 +803,7 @@ int main() {
                     cin >> beginyearin;
                     if ( beginyearin < resyear() ) {cout <<"<Invalid Year>"<<endl; entryerror=true;}
                 } while (entryerror==true);
-                
+
             //find workerid of requested service
             int workeridin = services[servnumin].getworkerid();
             
@@ -864,6 +864,128 @@ int main() {
             break;
         case 5:
         {
+            cout<<"Lookup Available Service by Date Time"<<endl;
+//            for (int i=0;i<svc_array_size;i++)     //   List out services
+//            {   if(services[i].svcnum != 999999)
+//            {
+//                cout << services[i].getsvcnum()<<",";
+//                cout << services[i].getname()<<","<<services[i].getminutes()<<",";
+//                cout <<"Worker#"<<services[i].getworkerid() << endl;
+//            }
+//            }
+            int servnumin = 0;
+            int blocks =0;
+            bool entryerror=false;
+            
+//            do{ entryerror=false; //validation loop
+//                cout <<"Enter Service Number:[0-19]"<<endl;
+//                cin >> servnumin; //takes in service number according to above list ...need to add validation
+//                blocks = (services[servnumin].getminutes())/30; //determines number of loops to search for conflicts
+//                if(servnumin > 19){cout<<"<Invalid Service Number>"<<endl;entryerror=true;}
+//            } while (entryerror==true);
+            entryerror=false;
+            int beginmonin=0;
+            do { entryerror=false; //validation loop
+                cout <<"Enter Appointment Month(1-12):"<<endl;
+                cin >> beginmonin;
+                if ( (beginmonin ==0)  || (beginmonin >12) ) {cout <<"<Invalid Month>"<<endl; entryerror=true;}
+            } while (entryerror==true);
+            int begindayin=0;
+            do{ entryerror=false; // validation loop
+                cout <<"Enter Appointment Date (1-31):"<<endl;
+                cin >> begindayin;
+                if( (begindayin==0) || (begindayin>31) ) //add specific month- day limit matching later
+                {cout<<"<Invalid Date>"<<endl; entryerror=true; }
+            } while(entryerror==true);
+            int beginyearin=0;
+            do { entryerror=false; //validation loop
+                cout <<"Enter Appointment Year (4 digits):"<<endl;
+                cin >> beginyearin;
+                if ( beginyearin < resyear() ) {cout <<"<Invalid Year>"<<endl; entryerror=true;}
+            } while (entryerror==true);
+            int begintimein=0;
+            do { entryerror = false; //validation loop
+                cout <<"Enter Begin Time:" << endl;
+                cin >> begintimein;
+                begintimein = c2m(begintimein);
+                if ( (begintimein%30 != 0) || (begintimein > c2m(1930)) ||  (begintimein < c2m(800))  )
+                {cout << "<Invalid Begin Time>"<< endl;
+                    entryerror=true;} }while(entryerror == true);
+            //find workerid of requested service
+
+            for( servnumin=2; servnumin<svc_array_size -1; servnumin++)  //begin services loop (-1 from svc array size)
+            { int workeridin = services[servnumin].getworkerid();
+                blocks = (services[servnumin].getminutes())/30;
+            for (int i=0; i<20; i++) // search thru services match workerid
+            {
+                if(services[i].workerid == workeridin) //execute when matches workerid
+                {
+                    int svc_to_check = services[i].svcnum; //pull service number when matches
+                    for(int ii=0; ii<appt_array_size; ii++) //search thru appt array to find service matches
+                    {
+                        if( (appt[ii].servid == svc_to_check) &&  // execute when svc number matches
+                           (appt[ii].beginmon == beginmonin) &&  // month match
+                           (appt[ii].beginday == begindayin) &&  // year match
+                           (appt[ii].beginyear == beginyearin)
+                           )
+                        {   int blocks = (services[svc_to_check].getminutes())/30;
+                            
+                            for(int b=0;b<blocks;b++)//create entrys by number of block of service found
+                            {
+                                int firstemptyspot=0; //find first empty spot on takenlist_worker
+                                for(int f=0;f<24;f++)
+                                {
+                                    if(takenlist_worker[f].custid == 0)
+                                    { firstemptyspot=f; break;}
+                                }                     //end find empty spot
+                                
+                                takenlist_worker[firstemptyspot].setbegintime(appt[ii].begintime + b*30); //populate
+                                takenlist_worker[firstemptyspot].setcustid(1);
+                            }
+                        }
+                    }
+                }
+                
+            }
+            //display worker availability
+            //cout <<"0800 0830 0900 0930 1000 1030 1100 1130 1200 1230 1300 1330 1400 1430 1500 1530 1600 1630 1700 1730 1800 1830 1900 1930 2000";
+            //cout << "     ";
+            cout << endl;
+            //cout << "This is Worker#"<<workeridin<<","<<services[servnumin].getname()<<"Availability"<<endl;
+                cout << services[servnumin].getname() <<","<<services[servnumin].getminutes()<<" ";
+            int conflictslot_counter = 0;
+            for (int i= begintimein; i < begintimein + blocks*30; i=i+30)
+            {   //cout <<c2h(i);  //display start time block
+                bool spottaken=false;
+                for (int ii=0; ii<20; ii++)
+                {
+                    if (takenlist_worker[ii].begintime== i){spottaken=true;}
+                    
+                }
+                if (spottaken==true)
+                {
+                    //cout<<"**";   //if taken
+                    conflictslot_counter++;
+                }
+                else
+                {
+                    //cout<< "__"; //if not taken
+                }
+            }
+            //cout << endl;
+                if(conflictslot_counter > 0 ) {cout << "<Not Available>";}
+                else {cout << "<Available>";}
+            for(int i=0; i<24;i++) //reinitialize taken lists
+            {
+                takenlist_self[i].custid=0;
+                takenlist_self[i].begintime=0;
+            }
+} //end services scan loop
+            cout << endl;
+        }
+            break;
+        case 6:
+        {
             to_exit=true;
             cout<<"Exiting Program"<<endl;
         }
@@ -884,8 +1006,9 @@ int main() {
     cout <<" (1) Book Reservation"<< endl;
     cout <<" (2) Cancel Reservation" << endl;
     cout <<" (3) Bill Customer" << endl;
-    cout <<" (4) Check Availablity" <<endl;
-    cout <<" (5) Exit Program"<<endl;
+    cout <<" (4) Check Availability of Service by Date" <<endl;
+    cout <<" (5) Check Availabile Services by Date & Time" << endl;
+    cout <<" (6) Exit Program"<<endl;
     cout <<" ENTER SINGLE NUMBER CHOICE:" << endl;
 }
     void showservicemenu()
