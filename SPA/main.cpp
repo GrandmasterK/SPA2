@@ -99,6 +99,66 @@ int resyear();
 int restime();
 int getlines();
 int getlines_s();
+///////////////
+struct DATE
+{
+    int Month;
+    int Day;
+    int Year;
+};
+///////////////
+//bool valdate (DATE);
+bool valdate (DATE begin, DATE checkout)
+{
+    bool date_is_valid = true;
+    bool is_leap_year= false;
+    bool day_violation = false;
+    if ( (begin.Year % 400) == 0 )
+    {
+        is_leap_year = true;
+    }
+    else if ( (begin.Year % 100)  == 0) { is_leap_year = false;}
+    else if ( (begin.Year % 4 )   == 0) { is_leap_year = true;}
+    if ( (begin.Month == 2) && (is_leap_year == true) && (begin.Day > 29 ) )
+    {
+        day_violation = true;
+    }
+    else if ( (begin.Month == 2) && (is_leap_year == false) && (begin.Day > 28) )
+    {
+        day_violation = true;
+    }
+    else if ( (begin.Month == 1) || (begin.Month == 3) || (begin.Month == 5) || (begin.Month == 7) || (begin.Month == 8) || (begin.Month == 10) || (begin.Month ==12))
+    {
+        if (begin.Day > 31)
+        {
+            day_violation = true;
+        }
+    }
+    else if ( (begin.Month == 4) || (begin.Month == 6) || (begin.Month == 9) || (begin.Month == 11) )
+    {
+        if (begin.Day >30)   { day_violation = true;}
+    }
+    int current_month = resmon();
+    int current_day = resday();
+    int current_year = resyear();
+    if (begin.Year < current_year) { date_is_valid = false;} //checks input vs current
+    else if ( (begin.Year == current_year) && (begin.Month < current_month) ) { date_is_valid = false; }
+    else if ( (begin.Year == current_year) && (current_month == begin.Month) && (begin.Day < current_day) ) { date_is_valid = false; }
+    //if (year > current_year) { date_is_valid = true;}
+  
+    //if (is_leap_year == true) {cout << "leap year" << endl;}
+    //cout << begin.Month <<"/"<<begin.Day<<"/"<<begin.Year<<endl;
+    //cout << checkout.Month <<"/"<<checkout.Day<<"/"<<checkout.Year<< endl;
+    if (checkout.Year < begin.Year) { date_is_valid = false;}  //checks input vs. checkout date
+    else if ( (checkout.Year == begin.Year) && (checkout.Month < begin.Month) ) { date_is_valid = false; }
+    else if ( (checkout.Year == begin.Year) && (begin.Month == checkout.Month) && (checkout.Day < begin.Day) ) { date_is_valid = false; }
+    
+    
+    if ( day_violation == true) { date_is_valid = false;}
+    
+    return date_is_valid;
+}
+//int datevalid2(string);
 int main() {
 
     
@@ -163,7 +223,7 @@ int main() {
 //        }
 
     customer customers[5]; //create customers in memory array  --assuming 5 customers for simplicity at first
-
+    
     ifstream inputfile2;
     inputfile2.open("customers.txt"); // pull data from customers.txt  --add file open verify test later
     for (int i=0; i<5; i++)
@@ -234,7 +294,7 @@ int main() {
         //load appt book first by counting lines, creating array dynamically according to recordcount+1
         int num_of_lines=0;
         num_of_lines = getlines();
-        cout << "No. of lines in appt:"<<num_of_lines<<endl;
+        //cout << "No. of lines in appt:"<<num_of_lines<<endl;
         int num_of_records=0;
         num_of_records= num_of_lines/11;
         cout << "Number of Records:"<< num_of_records<<endl;
@@ -290,9 +350,14 @@ int main() {
             
             cin >> custidin; //takes in customer id need to add validation
                 //find customer
-                for(int i =0;i<5;i++) //limited to 5 update later
-                {if(custidin == customers[i].id) { entryerror=false; }
+
+            for(int i =0;i<5;i++) //limited to 5 update later
+            {
+                if(custidin == customers[i].id)
+                {
+                    entryerror=false;
                 }
+            }
                 if (entryerror==true){cout<<"<Invalid Customer ID>"<<endl;}
             } while (entryerror==true);
             
@@ -313,23 +378,57 @@ int main() {
             blocks = (services[servnumin].getminutes())/30; //determines number of loops to search for conflicts
                 if(servnumin > 19){cout<<"<Invalid Service Number>"<<endl;entryerror=true;}
             } while (entryerror==true);
-            entryerror=false;
-            do { entryerror=false; //validation loop
-            cout <<"Enter Appointment Month(1-12):"<<endl;
-            cin >> beginmonin;
-            if ( (beginmonin ==0)  || (beginmonin >12) ) {cout <<"<Invalid Month>"<<endl; entryerror=true;}
-            } while (entryerror==true);
-            do{ entryerror=false; // validation loop
-            cout <<"Enter Appointment Date (1-31):"<<endl;
-            cin >> begindayin;
-                if( (begindayin==0) || (begindayin>31) ) //add specific month- day limit matching later
-                {cout<<"<Invalid Date>"<<endl; entryerror=true; }
-            } while(entryerror==true);
-            do { entryerror=false; //validation loop
-            cout <<"Enter Appointment Year (4 digits):"<<endl;
-            cin >> beginyearin;
-                if ( beginyearin < resyear() ) {cout <<"<Invalid Year>"<<endl; entryerror=true;}
-            } while (entryerror==true);
+            entryerror = false;
+            
+            bool date_is_good = false;
+
+            do {
+                do {
+                    entryerror=false; //validation loop
+                    cout <<"Enter Appointment Month(1-12):"<<endl;
+                    cin >> beginmonin;
+                    if ( (beginmonin ==0)  || (beginmonin >12) ) {cout <<"<Invalid Month>"<<endl; entryerror=true;}
+                } while (entryerror==true);
+                do{ entryerror=false; // validation loop
+                    cout <<"Enter Appointment Date (1-31):"<<endl;
+                    cin >> begindayin;
+                    if( (begindayin==0) || (begindayin>31) ) //add specific month- day limit matching later
+                    {
+                        cout<<"<Invalid Date>"<<endl; entryerror=true;
+                    }
+                } while(entryerror==true);
+                do { entryerror=false; //validation loop
+                    cout <<"Enter Appointment Year (4 digits):"<<endl;
+                    cin >> beginyearin;
+                    if ( beginyearin < resyear() ) {cout <<"<Invalid Year>"<<endl; entryerror=true;}
+                } while (entryerror==true);
+
+                DATE d1;
+                d1.Month = beginmonin;
+                d1.Day = begindayin;
+                d1.Year = beginyearin;
+                cout << d1.Month << "/" << d1.Day << "/" << d1.Year << endl;
+                
+                
+                DATE checkOut;
+                for(int i =0;i<5;i++) //limited to 5 update later
+                {
+                    if(custidin == customers[i].id)
+                    {
+                        checkOut.Month = customers[i].checkout_month;
+                        checkOut.Day = customers[i].checkout_day;
+                        checkOut.Year = customers[i].checkout_year;
+                    }
+                }
+                
+                date_is_good = valdate(d1, checkOut);
+
+                if (date_is_good == true) {cout << "Date is Good" << endl;}
+                else { cout << "<Invalid Date>" << endl;}
+            } while (date_is_good == false);
+            //cout << date_is_good << endl;
+            
+            
             do{entryerror=true;//validation loop
             cout <<"Enter Begin Time:[800-1930]:"<<endl;
             cin >> begintimein;
@@ -784,6 +883,7 @@ int main() {
                     if(servnumin > 19){cout<<"<Invalid Service Number>"<<endl;entryerror=true;}
                 } while (entryerror==true);
                 entryerror=false;
+            
                 int beginmonin=0;
                 do { entryerror=false; //validation loop
                     cout <<"Enter Appointment Month(1-12):"<<endl;
@@ -803,6 +903,7 @@ int main() {
                     cin >> beginyearin;
                     if ( beginyearin < resyear() ) {cout <<"<Invalid Year>"<<endl; entryerror=true;}
                 } while (entryerror==true);
+            
 
             //find workerid of requested service
             int workeridin = services[servnumin].getworkerid();
@@ -1167,11 +1268,3 @@ int getlines_s()
     svcfile.close();
     return no_of_lines;
 }
-//void list_services(service services[])
-//{
-//    for (int i=0;i<20;i++)     //test pull data from objects
-//    {
-//        cout << services[i].getname()<<","<< services[i].getminutes()<<","<<services[i].getrate()<<endl;
-//        cout << endl;
-//    }
-//}
